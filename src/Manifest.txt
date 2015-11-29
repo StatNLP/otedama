@@ -1,0 +1,1 @@
+Class-Path: ../lib/parser/stanford-parser.jar  ../lib/parser/stanford-parser-3.5.2-models.jar ../src/* ../bin/datatypes.jar ../bin/*.jar ../bin/*
