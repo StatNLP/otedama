@@ -1,6 +1,6 @@
 # OTEDAMA - Preordering for Machine Translation
 
-Welcome to OTEDAMA, a system for extracting preordering rules for machine translation. Otedama currently works for English (using the Stanford Parser) as a source language and any target language for which word alignments can be extracted.
+Welcome to OTEDAMA, a system for extracting preordering rules for machine translation. Otedama currently works for English and Chinese (using the Stanford Parser) as source languages and any target language for which word alignments can be extracted. External source-language parsers using the CoNLL output format are also supported. 
 
 ## Prerequisites 
 
