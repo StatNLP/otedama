@@ -98,3 +98,4 @@ stanford-parser.jar
 
 OTEDAMA was created 2013-2015 by Julian Hitschler, Mayumi Ohta, Benjamin Körner and Laura Jehl at the Institute for Computational Linguistics, University of Heidelberg, Germany (www.cl.uni-heidelberg.de). For question, please contact J.H.: hitschler@cl.uni-heidelberg.de  
 OTEDAMA is licensed under the GNU General Public License (Version 3): http://www.gnu.org/licenses/gpl.html
+OTEDAMA is named after a Japanese juggling game for children: https://en.wikipedia.org/wiki/Otedama
