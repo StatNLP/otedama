@@ -1,9 +1,8 @@
 import java.util.Collections;
-import java.util.HashMap;
+//import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.Map;
-import java.util.LinkedList;
-import java.util.List;
-
+import java.util.Vector;
 
 /**
  * Node class
@@ -13,17 +12,16 @@ import java.util.List;
 
 public class Node implements Comparable<Node> {
     private int nodeID;
-    private List<Integer> alignment = new LinkedList<Integer>();
-    private Map<String, String> contexts = new HashMap<String, String>();
+    private Vector<Integer> alignment = new Vector<Integer>();
+    private Map<String, String> contexts = new TreeMap<String, String>();
     private String surface;
     private String tag;
     private String label;
-    private List<Node> children = new LinkedList<Node>();
+    private Vector<Node> children = new Vector<Node>();
     private Node parent;
     private int initialLexicalIndex = 0;
     private boolean hasInitialIndex = false;
     
-
     /**
      * Constructor
      * 
@@ -73,11 +71,11 @@ public class Node implements Comparable<Node> {
 	this.tag = node.getTag();
 	this.label = node.getLabel();
 	this.parent = node.getParent();
-	this.children = new LinkedList<Node>(node.getChildren());
+	this.children = new Vector<Node>(node.getChildren());
 	for (String key : node.getContexts().keySet()) {
 	    this.contexts.put(key, node.getContexts().get(key));
 	}
-	this.alignment = new LinkedList<Integer>(node.getAlignment());
+	this.alignment = new Vector<Integer>(node.getAlignment());
     }
 
     // Getter and Setter
@@ -99,7 +97,7 @@ public class Node implements Comparable<Node> {
 	this.nodeID = nodeID;
     }
 
-    public List<Integer> getAlignment() {
+    public Vector<Integer> getAlignment() {
 	return alignment;
     }
 
@@ -143,7 +141,7 @@ public class Node implements Comparable<Node> {
 	this.label = label;
     }
 
-    public List<Node> getChildren() {
+    public Vector<Node> getChildren() {
 	return children;
     }
 
@@ -157,7 +155,7 @@ public class Node implements Comparable<Node> {
     }
 
     public void removeChildren() {
-	this.children = new LinkedList<Node>();
+	this.children = new Vector<Node>();
     }
 
     public void setChild(Node node) {
@@ -170,7 +168,7 @@ public class Node implements Comparable<Node> {
 	node.setParent(this);
     }
 
-    public void setChildren(List<Node> children) {
+    public void setChildren(Vector<Node> children) {
 	this.children = children;
 	for (Node n: this.children){
 		n.setParent(this);
@@ -190,14 +188,14 @@ public class Node implements Comparable<Node> {
 	this.parent = parent;
     }
 
-    public void postOrderWalk(List<Node> nodeList){
+    public void postOrderWalk(Vector<Node> nodeList){
 	nodeList.add(this);
 	for (Node n: this.children){
 	    n.postOrderWalk(nodeList);
 	}
     }
 
-    public void postOrderWalkLexical(List<Node> nodeList){
+    public void postOrderWalkLexical(Vector<Node> nodeList){
 	if (this.surface != null && !this.surface.startsWith("null") && this.surface.length() > 0 ){
 	    nodeList.add(this);
 	}
@@ -249,31 +247,82 @@ public class Node implements Comparable<Node> {
     }
 
     /**
-     * limit context table to 3 children
+     * limit context table to 4 children
      * 
      * @param start
-     *            index of 3 children
+     *            index of 4 children
      * @return limited context table
      */
-    public Map<String, String> limitContextTable(int start) {
+    public Map<String, String> limitContextTable(int start, int windowSize) {
+        int maxContextSize = 4+(2*windowSize);
 	Map<String, String> context = this.getContexts();
-	Map<String, String> limit = new HashMap<String, String>();
-	if (start >= context.size() - 3) {
+	Map<String, String> limit = new TreeMap<String, String>();
+	if (start >= context.size() - windowSize) {
 	    System.err.println("start index is out of range!");
 	    return null;
 	}
-	if (context.size() <= 10)
+	if (context.size() <= maxContextSize)
 	    // the node has less than 3 children
 	    return context;
-	for (String key : context.keySet()) {
-	    if (key.startsWith("n") || key.startsWith("p")
+	if (windowSize == 2){
+            for (String key : context.keySet()) {
+                if (key.startsWith("n") || key.startsWith("p")
 		    || key.startsWith("" + start)
-		    || key.startsWith("" + (start + 1))
-		    || key.startsWith("" + (start + 2))) {
+		    || key.startsWith("" + (start + 1))) {
 		limit.put(key, context.get(key));
-	    }
+                }
+            }
+	} else if (windowSize == 3){
+            for (String key : context.keySet()) {
+                if (key.startsWith("n") || key.startsWith("p")
+                    || key.startsWith("" + start)
+                    || key.startsWith("" + (start + 1))
+                    || key.startsWith("" + (start + 2))) {
+                limit.put(key, context.get(key));
+                }
+            }
+	} else {
+	   for (String key : context.keySet()) {
+                if (key.startsWith("n") || key.startsWith("p")
+                    || key.startsWith("" + start)
+                    || key.startsWith("" + (start + 1))
+                    || key.startsWith("" + (start + 2))
+                    || key.startsWith("" + (start + 3))) {
+                limit.put(key, context.get(key));
+                }
+            }
 	}
 	return limit;
+    }
+    
+    public Map<String, Boolean> initializeContextMask(Map<String, String> context){
+        Map <String, Boolean> mask = new TreeMap<String, Boolean>();
+        for (String key: context.keySet()) {
+            mask.put(key, true);
+        }
+        return mask;
+    }
+    
+    public Map<String, Boolean> decrementContextMask(Map<String, Boolean> mask, Vector<String> keys){
+        for (String key : keys ){
+            if (mask.get(key) == false){
+                mask.put(key, true);
+            } else if (mask.get(key) == true){
+                mask.put(key, false);
+                return mask;
+            }
+        }
+        return mask;
+    }
+    
+    public Map<String, String> applyMask(Map<String, String> context, Map<String, Boolean> mask){
+        Map<String, String> contextSubset = new TreeMap<String, String>();
+        for (String key : mask.keySet()){
+            if (context.containsKey(key) && mask.get(key) == true){
+                contextSubset.put(key, context.get(key));
+            }
+        }
+        return contextSubset;
     }
 
     /*
@@ -360,14 +409,13 @@ public class Node implements Comparable<Node> {
 	return level;
     }
 
-    public void applyRule(Rule rule, int minimumMatchingFeatures){
+    public boolean isRuleApplicable(Rule rule, int minimumMatchingFeatures){
 	//Applies rule to node, in-place.
 	boolean match = false;
-	Node tmp;
-	int j;
 	int nChildren = this.children.size();
-	int featureMatchUpperBound = ((nChildren*2)+4); //Two features per child, plus 2 for node, plus 2 for parent
-	if (featureMatchUpperBound >= 8 && featureMatchUpperBound < minimumMatchingFeatures){ // Has to have at least 3 children for reordering
+	//int featureMatchUpperBound = ((nChildren*2)+4); //Two features per child, plus 2 for node, plus 2 for parent
+	int featureMatchUpperBound = rule.getContext().size();
+	if (featureMatchUpperBound < minimumMatchingFeatures){ // Has to have at least 2 children for reordering
 		minimumMatchingFeatures = featureMatchUpperBound;
 	}
 	this.fillContextTable();//Has to be called both before and after rule application, as other nodes may have changed
@@ -386,17 +434,43 @@ public class Node implements Comparable<Node> {
 		match = true;
 	    }
 	}
+	return match;
+    }
+    
+    public Vector<Integer> getAlignments(){
+        Vector<Integer> alignments = new Vector<Integer>();
+        Vector<Node> governedNodes = new Vector<Node>();
+        this.postOrderWalk(governedNodes);
+        for (Node n: governedNodes){
+            for (int i: n.getAlignment()){
+                alignments.add(i);
+            }
+        }
+        return alignments;
+    }
+    
+    public void reorderChildren(Map<Integer, Integer> action){
+            Vector<Node> childrenPreviousOrder = new Vector<Node>(this.children);
+            Node tmp;
+            int j;
+            for (int i: action.keySet()){
+                    j = action.get(i);
+                    tmp = childrenPreviousOrder.get(i);
+                    this.children.set(j, tmp);
+            }
+    }
+	
+    public boolean applyRule(Rule rule, int minimumMatchingFeatures){
+	boolean match = isRuleApplicable(rule, minimumMatchingFeatures);
 	if (match){
 	    //System.out.println("Rule applies!");
-	    List<Node> childrenPreviousOrder = new LinkedList(this.children);
+	    
 	    //this.setSurface("*"+this.getSurface());
-	    for (int i: rule.getAction().keySet()){
-		    j = rule.getAction().get(i);
-		    tmp = childrenPreviousOrder.get(i);
-		    this.children.set(j, tmp);
-		}
+	    this.reorderChildren(rule.getAction());
 	    this.fillContextTable();//Second call to fillContextTable(), if anything's changed
+	    return true;
 	}
+        return false;
     }
 
     @Override

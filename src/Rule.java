@@ -4,13 +4,16 @@ import java.io.IOException;
 import java.util.TreeMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.Collections;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Rule Tester class
  * 
  * 
  */
-public class Rule {
+public class Rule implements Comparable<Rule> {
 
     private int ruleID;
     private Map<String, String> context = new TreeMap<String, String>();
@@ -80,7 +83,7 @@ public class Rule {
 	    int newIndex = Integer.parseInt(newSequence[j]);
 	    this.setActionPair(index, newIndex);
 	}
-	String[] scoreMapString = scoreListString.substring(1).split("'");
+	String[] scoreMapString = scoreListString.substring(1).split("#");
 	for (String scoreString : scoreMapString) {
 	    String[] nameAndScore = scoreString.split("=");
 	    String scoreName = nameAndScore[0];
@@ -141,7 +144,29 @@ public class Rule {
 
     @Override
     public String toString() {
-	return this.context.toString() + this.action.toString();
+	//return this.context.toString() + this.action.toString();
+	List<String> keyList = new ArrayList<String>(this.context.keySet());
+	Collections.sort(keyList);
+	String output = "{";
+        for (String key : keyList) {
+            output = output + key + "=" + this.getValue(key) + "#";
+        }
+        output = output.substring(0, output.length() - 1);
+        output = output + "}{";
+        List<Integer> actionKeyList = new ArrayList<Integer>( this.action.keySet());
+        Collections.sort(actionKeyList);
+        for (int key : actionKeyList) {
+            output = output + key + ",";
+        }
+        output = output.substring(0, output.length() - 1);
+        output = output + "=>";
+        for (int key : actionKeyList) {
+            output = output + this.getActionValue(key) + ",";
+        }
+        output = output.substring(0, output.length() - 1);
+        output = output + "}";
+        
+        return output;
     }
 
     public String toRuleFormat() {
@@ -169,5 +194,29 @@ public class Rule {
 	output = output + "}";
 	return output;
     }
-
+    
+    public boolean equals(Object o){
+      if (o == null){
+	return false;
+      }
+      if (o == this){
+	return true;
+      } 
+      if (o.getClass() == this.getClass()){
+	Rule r = (Rule)o;
+	if (this.context.equals(r.getContext()) && this.action.equals(r.getAction())){
+	  return true;
+	}
+      }
+      return false;
+    }
+    @Override
+    public int compareTo(Rule r){
+        if (r.getContext().size() == this.getContext().size()){
+            return 0;
+        } else if (this.getContext().size() < r.getContext().size()){
+            return -1;
+        }         
+        return 1;
+    }
 }

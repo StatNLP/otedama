@@ -19,7 +19,7 @@ import edu.stanford.nlp.trees.TypedDependency;
  * 
  */
 
-public class StanfordParserWrapper {
+public class StanfordParserWrapperCopyDep {
 
     /**
      * parse sentence and generate .trees file
@@ -132,7 +132,7 @@ public class StanfordParserWrapper {
 		//System.out.print("("+tw.value()+" : ");
 		n.setTag(tag);
 		governingNode.setTag("_"+tag);
-		governingNode.setLabel("_gov");
+		
 		//System.out.print(tw.tag()+")");
 		loneNodes.add(n);
 		governingNodes.add(governingNode);
@@ -168,11 +168,9 @@ public class StanfordParserWrapper {
 		//}
 		Node dep = loneNodes.get((depIndex));
 		Node gov = governingNodes.get((govIndex));
-		Node depcopy = governingNodes.get((depIndex));
-		Node govcopy = loneNodes.get((govIndex));
+		Node governingDep = governingNodes.get((depIndex));
 		dep.setLabel(td.reln().toString());
-		depcopy.setLabel(td.reln().toString());
-		govcopy.setLabel("head");
+		governingDep.setLabel(td.reln().toString());
 		//System.out.println(td.toString());
 		govInfo = td.gov().toString().split("/");
 		depInfo = td.dep().toString().split("/");
@@ -203,26 +201,14 @@ public class StanfordParserWrapper {
 			children = parent.getChildren();
 
 			for (Node n: children){
-				if (n == gov){                                       
+				if (n == gov){
 					gov.getParent().replaceChild(k, dep);
-					dep.setParent(gov.getParent());				
+					dep.setParent(gov.getParent());
 				}
 				k++;
 			}
 		}
 
-	    }
-	    //Mark head nodes with appropriate label:
-            int k = 0;
-            for (Node n: loneNodes){
-                    if (k != 0){
-                        if (n.getLabel() == n.getParent().getLabel()){
-                            n.setLabel("head");
-                        }
-                    } else {
-                        n.setLabel("null");
-                    }
-                    k++;
 	    }
 	    // Sort lexical children of each governing node in lexical order
 	    

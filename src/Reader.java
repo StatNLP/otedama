@@ -101,7 +101,7 @@ public class Reader {
     public Rule readNextRule() {
 	try {
 	    String line = br.readLine();
-	    System.out.println(line);
+	    //System.out.println(line);
 	    if (line == null) {
 		br.close();
 		return null;

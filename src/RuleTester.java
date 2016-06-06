@@ -3,7 +3,7 @@ import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.*;
+import java.util.Vector;
 
 //import Node;
 //import Tree;
@@ -38,26 +38,6 @@ public class RuleTester {
      * @param align
      * @return Crossing Score
      */
-    public static int computeCS(List<List<Integer>> align) {
-	int score = 0;
-	List<Integer> list = new LinkedList<Integer>();
-	for (List<Integer> k : align) {
-	    list.addAll(k);
-	}
-	for (int i = 1; i < list.size(); i++) {
-	    List<Integer> sub = list.subList(0, i);
-	    int counter = 0;
-	    for (int j = 0; j < sub.size(); j++) {
-		if (list.get(i) < sub.get(j)) {
-		    counter++;
-		}
-	    }
-	    score += counter;
-	}
-	return score;
-    }
-    
-
     // Test driver
     public static void main(String[] args) throws IOException {
 

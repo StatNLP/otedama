@@ -1,38 +1,73 @@
-//import Writer;
-//import Node;
-//import Tree;
-//import Rule;
-
-import java.util.*;
+import java.util.Vector;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
 import java.io.*;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.lang.Thread;
+import java.util.Collections;
 
-/**
- * MasterLeaener class
- * 
- * 
- */
 public class MasterLearner {
 	
-    // TODO Debugging
     private Random randomGenerator;
-    private List<Tree> treebank;
-    private List<Rule> rulebase;
+    private Tree[] treebank;
+    //private Vector<Tree> testTreebank;
+    private Vector<Rule> rulebase;
     private AtomicInteger threadCounter;
+    private boolean useTestTreebank;
+    private static final int ARRAY_SIZE = 100000;
+    private Set<String> rulesChecked;
     
-
-    /**
-     * Constructor
-     * 
-     */
     public MasterLearner() {
 	this.randomGenerator = new Random();
-	this.treebank = new LinkedList<Tree>();
-	this.rulebase = new LinkedList<Rule>();
+	this.treebank = new Tree[ARRAY_SIZE];
+	//this.testTreebank = new Vector<Tree>();
+	this.rulebase = new Vector<Rule>();
 	this.threadCounter = new AtomicInteger(0);
+	this.useTestTreebank = true;
+	this.rulesChecked = new HashSet<String>();
 	
+    }
+    public Tree[] copyTreebank(Tree[] inputTreebank, int maximumParallelThreads, int inputSize){
+        //int inputSize = ARRAY_SIZE;
+        Tree[] outputTreebank = new Tree[ARRAY_SIZE];
+        //Tree t = new Tree();
+        //for (int i = 0; i < inputSize; i++){
+        //    outputTreebank.add(i, t);
+        //}
+        int batchSize = (inputSize / maximumParallelThreads) + 2;
+        System.out.println("Nominal batch size: "+batchSize);
+        int previousBatchLimit = 0;
+        int currentBatchLimit = batchSize;
+        int effectiveBatchSize = 0;
+        try{ 
+            Vector<TreeCopyThread> copyThreads = new Vector<TreeCopyThread>();
+            Tree newTree;
+            TreeCopyThread tct;
+            while(currentBatchLimit < inputSize){
+                tct = new TreeCopyThread(inputTreebank, outputTreebank, previousBatchLimit, currentBatchLimit);
+                tct.start();
+                copyThreads.add(tct);
+                previousBatchLimit = currentBatchLimit;
+                currentBatchLimit += batchSize;
+                effectiveBatchSize = currentBatchLimit - previousBatchLimit;
+                System.out.println("Batch:"+effectiveBatchSize);
+            }
+            tct = new TreeCopyThread(inputTreebank, outputTreebank, previousBatchLimit, inputSize);
+            tct.start();
+            copyThreads.add(tct);
+            effectiveBatchSize = inputSize - previousBatchLimit;
+            System.out.println("Batch:"+effectiveBatchSize);
+            for (TreeCopyThread tct1 : copyThreads){
+                tct1.join();
+                //outputTreebank.addAll(tct1.getCopies());
+            }
+        } catch (Exception e) {
+            System.err.println("Could not copy treebank!");
+        }
+        return outputTreebank;
     }
 
     public int getThreadCount(){
@@ -47,79 +82,98 @@ public class MasterLearner {
 	this.threadCounter.decrementAndGet();
     }
 
-    /**
-     * read tree file
-     * 
-     * @param treeFile
-     */
-    public void readTreeFile(String treeFile) {
+    public void readTreeFile(String treeFile, Tree[] treebank) {
 	int line_counter = 1;
 	try {
 	    BufferedReader treeBuffer = new BufferedReader(new FileReader(treeFile));
 	    Tree tree = new Tree();
 	    String stringTree = treeBuffer.readLine();
+	    int i = 0;
 	    while (stringTree != null) {
+                if (i == ARRAY_SIZE){
+                    System.err.println("Treebank file "+treeFile+" is too large. Only a maximum of "+ARRAY_SIZE+" entries are allowed. Consider using smaller file or recompiling with larger ARRAY_SIZE.");
+                    System.exit(5);
+                }
 		try {
-			this.treebank.add(tree.fromTreeFormat(stringTree));
+			treebank[i] = tree.fromTreeFormat(stringTree);
 		} catch (Exception e) {
-			System.err.println("WARNING: Could not read line "+line_counter+" :"+stringTree);
+			//System.err.println("WARNING: Could not read line "+line_counter+" :"+stringTree);
 		}
 		stringTree = treeBuffer.readLine();
 		line_counter++;
+		i++;
 	    }
 	    treeBuffer.close();
 	} catch (Exception e) {
-	    // TODO Auto-generated catch block
 	    e.printStackTrace();
 	    System.out.println("Failed to read :" + treeFile);
 	    System.exit(4);
 	}
     }
 
-    /**
-     * read rule file
-     * 
-     * @param rulesFile
-     * @param rulesList
-     */
-    public void readRulesFile(String rulesFile, List<Rule> rulesList) {
+    public void readRulesFile(String rulesFile, Vector<Rule> rulesList) {
 	try {
 	    BufferedReader rulesBuffer = new BufferedReader(new FileReader(
 		    rulesFile));
 	    String stringRule = rulesBuffer.readLine();
-	    //System.out.println("Reading rules file: "+rulesFile);
 	    while (stringRule != null) {
 		Rule r = new Rule(stringRule);
 		if (r.getAction().size() > 0) {
-		    //System.out.println("Read rule: "+r.toRuleFormat());
 		    rulesList.add(r);
 		}
 		stringRule = rulesBuffer.readLine();
 	    }
 	    rulesBuffer.close();
 	} catch (Exception e) {
-	    // TODO Auto-generated catch block
 	    e.printStackTrace();
 	    System.out.println("Failed to read :" + rulesFile);
 	    System.exit(3);
 	}
     }
 
-    /**
-     * generate random subset of trees
-     * 
-     * @param treeList
-     * @param percentage
-     * @return subset of trees
-     */
+    public Vector<Tree> generateSubsetNoUseless(Tree[] treeList, int length, Vector<Tree> output){
+    	int treebankLength = 0;
+    	//System.out.println("Treebank length:"+treebankLength);
+    	//Vector <Tree> output = new Vector<Tree>();
+    	Tree t;
+    	int n = 0;
+        int index;
+	for (Tree tree: this.treebank){
+                if (tree == null){
+                    break;
+                }
+                treebankLength++;
+		tree.setAdded(false);
+	}
+    	while (output.size() < length){
+		index = randomGenerator.nextInt(treebankLength);
+		t = this.treebank[index];
+		if (!t.isUseless() && !t.hasBeenAdded()){
+			output.add(t);
+			t.setAdded(true);
+        	}
+		n = n + 1;
+		if (n > treebankLength){
+			break;
+		}
+    	}
+	for (Tree tree: this.treebank){
+                if (tree==null){
+                    break;
+                }
+		tree.setAdded(false);
+	}
+	return output;
+    }   
     
-    
-    
-    public List<Tree> generateSubset(List<Tree> treeList, int length){
-    int treebankLength = treeList.size();
-    List <Tree> output = new LinkedList<Tree>();
+    public Vector<Tree> generateSubset(Tree[] treeList, int length, Vector<Tree> include){
+    int treebankLength = ARRAY_SIZE;
+    Vector <Tree> output = new Vector<Tree>();
     if (treebankLength > length){
         for (Tree t: treeList){
+            if (t==null){
+                break;
+            }
             output.add(t);
         }
         int outputLength = output.size();
@@ -128,73 +182,47 @@ public class MasterLearner {
             output.remove(index);
             outputLength = output.size();
         }
+        output.addAll(include);
         return output;
     } else {
         for (Tree t: treeList){
+            if (t == null){
+                break;
+            }
             output.add(t);
         } 
+        output.addAll(include);
         return output;
     	}
-    }
+    }  
     
-    
-    
-    
-    
-    public List<Tree> generateRandomSubset(List<Tree> treeList, int subsetLength) {
-	List<Tree> subset = new LinkedList<Tree>();
-	int treeListLength = treeList.size();
-	// System.out.println("Size of treelist:" + treeListLength);
-	// System.out.println("Size of subset:" + subsetLength);
+    public Vector<Tree> generateRandomSubset(Tree[] treeList, int subsetLength) {
+	Vector<Tree> subset = new Vector<Tree>();
+	int treeListLength = ARRAY_SIZE;
 	int index = 0;
 	for (int i = 0; i < subsetLength; i++) {
-	    index = this.randomGenerator.nextInt(treeListLength - 1);
-	    subset.add(treeList.get(index));
+	    index = this.randomGenerator.nextInt(treeListLength);
+	    subset.add(treeList[index]);
 	}
 	return subset;
     }
     
-    
-
-    /**
-     * read rule files from directory
-     * 
-     * @param directory
-     * @param filePrefix
-     * @return list of rules
-     */
-    public List<Rule> readRulesFromDirectory(File directory, String filePrefix) {
-	List<Rule> rules = new LinkedList<Rule>();
-	//System.out.println(directory.exists());
+    public Vector<Rule> readRulesFromDirectory(File directory, String filePrefix) {
+	Vector<Rule> rules = new Vector<Rule>();
 	File[] contentFiles = directory.listFiles();
-	//System.out.println("Reading rules directory"+directory.getName());
 	
 	if (contentFiles != null) {
-	    // System.out.println(contentFiles);
-	    // System.out.println("Contains files:" + contentFiles.length);
 	    for (File f : contentFiles) {
 		if (f.getName().startsWith(filePrefix)) {
 		    readRulesFile(f.getAbsolutePath(), rules);
-		    //System.out.println("Size of rulelist(1):"+rules.size());
 		}
 	    }
-	} else {
-	    // System.out.println("NO CONTENT");
+	} else {	   
 	    return rules;
 	}
-	//System.out.println("Size of rulelist(2):"+rules.size());
 	return rules;
     }
 
-    /**
-     * run
-     * 
-     * @param rulesFile
-     * @param originalTreeFile
-     * @param n
-     *            number of iteration
-     * @throws Exception
-     */
     public void run(
 		String originalTreeFile, 
 		int n, 
@@ -204,39 +232,78 @@ public class MasterLearner {
 		int trials, 
 		int minimumMatchingFeatures,
 		int maximumParallelThreads,
-		String outputRuleFile) throws Exception {
+		String outputRuleFile,
+		String testSetFile,
+		int maximumOverallReduction,
+		double minimumReductionFactor,
+		int windowSize,
+		String useSubsetOptionString,
+		String useVerboseLoggingOption) throws Exception {
+	boolean useSubsets = false;
+	if (useSubsetOptionString.startsWith("y")){
+            useSubsets = true;
+	} else {
+            useSubsets = false;
+	}
+	boolean useVerboseLogging = false;
+        if (useVerboseLoggingOption.startsWith("v")){
+            useVerboseLogging = true;
+        } else {
+            useVerboseLogging = false;
+        }
 	long startRun = System.currentTimeMillis();
-	
+	int learningSetScaled = learningSet;
+	int scoringSetScaled = scoringSet;
+	Vector<Integer> recordedCSPrevious = new Vector<Integer>(ARRAY_SIZE);
+	//Vector<Integer> recordedCSCurrent = new Vector<Integer>(ARRAY_SIZE);
+	Vector<RuleApplication> ruleThreads = new Vector<RuleApplication>(ARRAY_SIZE);
+	RuleApplication application; 
+
 	//read the original trees file to treebank
-	readTreeFile(originalTreeFile);
-	// System.out.println(this.treebank);
-	
-	//create an empty rules fife and "read" its contents to the rulebase
-	//File rules = new File(rulesFile);
-	//rules.createNewFile();
-	//readRulesFile(rulesFile, this.rulebase);
-	// System.out.println(this.rulebase);
+	readTreeFile(originalTreeFile, this.treebank);
+
+	Tree[] hypTreebank = new Tree[ARRAY_SIZE];
 	
 	//create a temporary tress file and write the treebank to it, then refreshes the treebank from it
-	System.out.println("Size of treebank:"+this.treebank.size());
-	System.out.println("Maximum crossing score:"+maxCrossingScore);
-	System.out.println("Minimum matching features:"+minimumMatchingFeatures);
 
+	
 	File temporaryTrees = new File("temp.trees");
 	temporaryTrees.createNewFile();
 	Writer writer = new Writer(temporaryTrees.getName(), false);
 
-	/**
-	for (Tree t: this.treebank){
-	    writer.write(t);
-	}
-	writer.close();
-	**/
+	File temporaryTestTrees = new File("temp_test.trees");
+	Writer testWriter = new Writer(temporaryTestTrees.getName(), false);
 
-	// System.out.println(this.treebank);
 	int smallestDecimalPlace;
 	String suffix;
+	int treebankCS = 0;
+	int newTreebankCS = 0;
+	int testTreebankCS = 0;
+	int newTestTreebankCS = 0;
+	int treebankSize = 0;
+
+	// compute and report training treebank crossing score
+
+	for (Tree t : this.treebank){
+                if (t==null){
+                    break;
+                }
+                treebankSize++;
+		//t.fillAlignmentVector();
+		newTreebankCS += t.getCrossingScore();
+	}
 	
+	System.out.println("Size of treebank:"+treebankSize);
+        //System.out.println("Size of test set treebank:"+this.testTreebank.size());
+        System.out.println("Maximum crossing score:"+maxCrossingScore);
+        System.out.println("Minimum matching features:"+minimumMatchingFeatures);
+	
+	Writer cslogger_train = new Writer(outputRuleFile+".cs.log", true);
+	cslogger_train.write(Integer.toString(newTreebankCS));
+	cslogger_train.close();
+	System.out.println("Treebank crossing score:"+newTreebankCS);
+	treebankCS = newTreebankCS;
+		
 	// Iterative learning steps: One rule is added per iteration
 	for (int i=0; i < trials; i++){
 	    if (this.rulebase.size()>= n){
@@ -253,44 +320,52 @@ public class MasterLearner {
 	    } else {
 			suffix = "th";
             }
-            	    
+                     
+            // write the new treebank to a new temporary trees files
+	    temporaryTrees = new File("temp.trees");
+	    temporaryTrees.createNewFile();
+	    writer = new Writer(temporaryTrees.getName(), false);
+	    for (Tree t : this.treebank) {
+                if (t==null){
+                    break;
+                }
+		writer.write(t);
+	    }
+	    writer.close();
 
 	    System.out.println("============================");
 	    System.out.println("Start of " + i + suffix+" iteration.");
 	    long start = System.currentTimeMillis();
-
-	    // read the current temporary trees file to treebank
-	    //this.treebank = new LinkedList<Tree>();
-	    //readTreeFile("temp.trees");
-	    // System.out.println(this.treebank);
 	    
-	    // Create an evaluation subset and write it to /home/public/test.trees
-
-	    List<Tree> evalTreebank = generateSubset(this.treebank, scoringSet);
+	    Vector<Tree> randomSubset = new Vector<Tree>();
+	    Vector<Tree> evalTreebank = new Vector<Tree>();
+	    
+	    //Generate random subset of trees on which to learn rules	    
+	    
+	    randomSubset = generateSubsetNoUseless(this.treebank, learningSetScaled, randomSubset);
+	    System.out.println("Size of the training subset:"+randomSubset.size());
+	    
+	    // Create an evaluation subset 
+	    
+	    evalTreebank = generateSubset(this.treebank, scoringSetScaled, randomSubset);
 	    System.out.println("Size of the evaluation subset:"+evalTreebank.size());
 
-            //Generate random subset of trees on which to learn rules	    
-
-	    List <Tree> randomSubset = generateSubset(this.treebank, learningSet);
-	    System.out.println("Size of the training subset:"+randomSubset.size());
-
-	    
 	    // Run learners on subset.trees (one learner per tree). 
-	    System.out.println("Size of treebank:"+this.treebank.size());
+	    System.out.println("Size of treebank:"+treebankSize);
 	    System.out.println("Maximum crossing score:"+maxCrossingScore);
 	    System.out.println("Minimum matching features:"+minimumMatchingFeatures);
-            Vector<Rule> learnedRules = new Vector<Rule>();
+            Vector<Vector<Rule>> learnedRules = new Vector<Vector<Rule>>();
 
-            List<RuleLearner> ruleLearners = new LinkedList<RuleLearner>();
+            Vector<RuleLearner> ruleLearners = new Vector<RuleLearner>();
 
             for (Tree t: randomSubset){
 
-		while (this.threadCounter.get() >= maximumParallelThreads){
+		while (this.threadCounter.get() > maximumParallelThreads - 1){
 			Thread.sleep(100);	
 		}
 
-
-		RuleLearner ruleLearner = new RuleLearner(t, evalTreebank, learnedRules, maxCrossingScore, minimumMatchingFeatures, this);
+		this.incrementThreadCounter();
+		RuleLearner ruleLearner = new RuleLearner(t, evalTreebank, learnedRules, maxCrossingScore, minimumMatchingFeatures, this, windowSize, useSubsets);
 		ruleLearners.add(ruleLearner);
 		ruleLearner.start();
             }
@@ -298,115 +373,190 @@ public class MasterLearner {
             for (RuleLearner l: ruleLearners){
                 l.join();
             }
-	    
+    
 	    // Select the new rule with the smallest crossing score.
 	    boolean success = false;
+	    boolean scoresConsistent = true;
+	    boolean varianceFail = false;
+	    int treeCounter = 0;
+	    Tree treeCopy = new Tree();
+	    int delta = 0;
+	    int ruleCount = 0;
+	    int treeCS = 0;
+	    int countReduction = 0;
+	    int countIncrease = 0;
+	    int c = 0;
+	    int batchSize = 0;
+	    int previousBatchLimit = 0;
+	    int currentBatchLimit = 0;
+	    long mark;
+	    long current;
+	    long time;
+	    String ruleString;
+	    
+	    Vector<Rule> ruleCacheValid = new Vector<Rule>();
 	    if (learnedRules.size() != 0) {
 		success = true;
 	    }
 	    if (success){
-		System.out.println("CADIDATE RULES:"+learnedRules.size());
+		
 		Double minScore = null;
-		Rule minimumScoringRule = new Rule();
-		for (Rule r: learnedRules){
-		    if (minScore == null){
-			minScore = r.getScore("CROSSING");
-			minimumScoringRule = r;
-		    }
-		    Double currentScore = r.getScore("CROSSING");
-		    if (currentScore < minScore){
-			minScore = currentScore;
-			minimumScoringRule = r;
-		    }
-		    // System.out.println("MINIMUM SCORE:"+minScore+":"+minimumScoringRule+minimumScoringRule.getAction().size());
-		
-		}
-	    
-		// apply the minimum scoring Rule to the treebank
-		try {
-		    //List<Tree> newTreebank = new LinkedList<Tree>();
-		    for (Tree t : this.treebank) {
-			t.applyRuleInPlace(minimumScoringRule, minimumMatchingFeatures);
-			//newTreebank.add(newTree);
-		    }
-		    //this.treebank = newTreebank;
-		} catch (Exception e) {
-		    e.printStackTrace();
-		    System.err.println("WARNING: Could not apply rule: "+minimumScoringRule.toString());
-		}
-	    
-		// delete the previous temporary trees file, containing an outdated version of the treebank
-		temporaryTrees.delete();
-	    
-		// write the new treebank to a new temporary trees files
-		temporaryTrees = new File("temp.trees");
-		temporaryTrees.createNewFile();
-		writer = new Writer(temporaryTrees.getName(), false);
-		for (Tree t : this.treebank) {
-		    writer.write(t);
-		}
-		writer.close();
-	    
-		// add the minimum scoring Rule to the rulebase
-		this.rulebase.add(minimumScoringRule);
-		writer = new Writer(outputRuleFile, false);
-		for (Rule r: this.rulebase){
-		    writer.write(r);
-		}
-		writer.close();
-		System.out.println("Learnd new rule: "+minimumScoringRule.toRuleFormat());
-		
+		ruleCount = 0;
+		for (Vector<Rule> ruleList : learnedRules){
+                    if (useVerboseLogging){
+                        System.out.println("CADIDATE RULES:"+ruleList.size());
+                    };
+                    for (Rule rule: ruleList){
+                        ruleString = rule.toString();
+                        if (this.rulesChecked.contains(ruleString)){
+                            if (useVerboseLogging){
+                                System.out.println("WARNING: Learning step could not be completed successfully, skipping to next. (Rule seen, rule:"+ruleString+")");
+                            }
+                            continue;
+                        }
+                        this.rulesChecked.add(ruleString);
+                    
+			hypTreebank = new Tree[ARRAY_SIZE];
+			recordedCSPrevious = new Vector<Integer>(ARRAY_SIZE);
+			ruleThreads = new Vector<RuleApplication>();
+			countIncrease = 0;
+			countReduction = 0;
+			varianceFail = false;
+			current = System.currentTimeMillis();
+			try {
+				for (Tree t : this.treebank) {
+                                        if (t==null){
+                                            break;
+                                        }
+                                        
+					recordedCSPrevious.add(t.getCrossingScore());
+				}
+				current = System.currentTimeMillis();
+				batchSize = ARRAY_SIZE / maximumParallelThreads;
+				previousBatchLimit = 0;
+				currentBatchLimit = batchSize;
+				while (currentBatchLimit < treebankSize){
+                                        application = new RuleApplication(this.treebank, hypTreebank, rule, minimumMatchingFeatures, previousBatchLimit, currentBatchLimit);
+                                        application.start();
+                                        ruleThreads.add(application);
+                                        previousBatchLimit = currentBatchLimit;
+                                        currentBatchLimit += batchSize;
+				}
+				application = new RuleApplication(this.treebank, hypTreebank, rule, minimumMatchingFeatures, previousBatchLimit, treebankSize);
+				application.start();
+				ruleThreads.add(application);
+				for (RuleApplication a: ruleThreads){
+                                    a.join();
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			// compute and report training treebank crossing score
+			newTreebankCS = 0;
+			delta = 0;
+			c = 0;
+			for (Tree t : hypTreebank){
+                                if (t==null){
+                                    break;
+                                }
+				treeCS = t.getCrossingScore();
+				newTreebankCS += treeCS;
+				if (treeCS < recordedCSPrevious.get(c)){
+				      countReduction++;
+				} else if (treeCS > recordedCSPrevious.get(c)){
+				      countIncrease++;
+				}
+				c ++;
+			}
+			rule.setScore("COUNT_REDUCTION", (double) countReduction);
+			rule.setScore("COUNT_INCREASE", (double) countIncrease);
+			delta = newTreebankCS - treebankCS;
+			if (delta >= maximumOverallReduction || countIncrease * minimumReductionFactor > countReduction){
+                                if (useVerboseLogging){
+                                    System.out.println("WARNING: Learning step could not be completed successfully, skipping to next. (No reduction, rule:"+ruleString+")");
+                                }
+				continue;
+			}
+			rule.setScore("CROSSING", (double) delta);
+			System.out.println("Treebank crossing score:"+newTreebankCS+
+				" (delta="+(delta)+")");
+			cslogger_train = new Writer(outputRuleFile+".cs.log", true);
+			cslogger_train.write(Integer.toString(newTreebankCS));
+			cslogger_train.close();
+			this.treebank = hypTreebank;
+			treebankCS = newTreebankCS;
 
+			// add the Rule to the rulebase
+			this.rulebase.add(rule);
+			writer = new Writer(outputRuleFile, true);
+			
+			writer.write(rule);
+			writer.close();
+
+			System.out.println("Learned new rule: "+rule.toRuleFormat());
+			ruleCount++;
+			break;
+                    }
+		}
+		if (ruleCount < 20){
+			//Scale up learning and scoring sets:
+			learningSetScaled = learningSetScaled * 2;
+			scoringSetScaled = scoringSetScaled * 4;
+		} else if (ruleCount > 1000 && learningSetScaled > 10){
+			//Scale down learning and scoring sets:
+			learningSetScaled = learningSetScaled / 2;
+			scoringSetScaled = scoringSetScaled / 2;
+		}
 	    } else {
-		System.out
-			.println("WARNING: Learning step could not be completed successfully, skipping to next.");
-		
+		//Scale up learning and scoring sets:
+		learningSetScaled = learningSetScaled * 2;
+		scoringSetScaled = scoringSetScaled * 4;
+		System.out.println("WARNING: Iteration could not be completed successfully, skipping to next.");
 	    }
 	    
-	// cleanup and temporary output
-	//subsetTreesFile.delete();
-	//Process p = Runtime.getRuntime().exec("rm -r hadoop_output1");
-	//p.waitFor();
-	//p.destroy();
-	//p = Runtime.getRuntime().exec("rm /home/public/temp.trees");
-	//p.waitFor();
-	//p.destroy();	
+	   // delete the previous temporary trees file, containing an outdated version of the treebank
+	    temporaryTrees.delete();
+	    
+	    // write the new treebank to a new temporary trees files
+	    temporaryTrees = new File("temp.trees");
+	    temporaryTrees.createNewFile();
+	    writer = new Writer(temporaryTrees.getName(), false);
+	    for (Tree t : this.treebank) {
+                if (t==null){
+                    break;
+                }
+		writer.write(t);
+	    }
+	    writer.close();
 
+	    this.treebank = new Tree[ARRAY_SIZE];
+	    readTreeFile("temp.trees", this.treebank);
 	    long stop = System.currentTimeMillis();
 	    System.out.println("End of " + i + suffix+" iteration: [" + (stop - start)
 		    / 1000 + " sec]");
 	}
 	temporaryTrees.delete();
-	//rules.delete();
+
 	int i = 0;
-	writer = new Writer(outputRuleFile, false);
+	writer = new Writer(outputRuleFile+".final", false);
 	for (Rule r: this.rulebase){
 	    r.setRuleID(++i);
 	    writer.write(r);
 	}
 	writer.close();
-	System.out.println(this.rulebase.size());
-	//Process p = Runtime.getRuntime().exec("hadoop fs -rm hadopp_output1");
-	//p.waitFor();
-	//p.destroy();
 	
 	long stopRun = System.currentTimeMillis();
 	System.out.println("Done! [" + (stopRun - startRun) / 1000 + " sec]");
 
     }
 
-    /**
-     * main
-     * 
-     * @param args
-     * @throws Exception
-     */
     public static void main(String[] args) throws Exception {
-	if (args.length == 9) {
+	if (args.length == 15) {
 	    MasterLearner master = new MasterLearner();
-	    master.run(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]), Integer.parseInt(args[3]), Integer.parseInt(args[4]), Integer.parseInt(args[5]), Integer.parseInt(args[6]), Integer.parseInt(args[7]), args[8]);
+	    master.run(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]), Integer.parseInt(args[3]), Integer.parseInt(args[4]), Integer.parseInt(args[5]), Integer.parseInt(args[6]), Integer.parseInt(args[7]), args[8], args[9], Integer.parseInt(args[10]), Double.parseDouble(args[11]), Integer.parseInt(args[12]), args[13], args[14]);
 	} else {
-	    System.out.println("Usage: (string) trees_file, (int) number of iterations, (int) size of learning set, (int) size of scoring set, (int) maximum crossing score, (int) number of trials, (int) minimum matching features, (int) parallel threads, (string) output file for rules");
+	    System.out.println("Usage: (string) trees file, (int) number of iterations, (int) size of learning set, (int) size of scoring set, (int) maximum crossing score, (int) number of trials, (int) minimum matching features, (int) parallel threads, (string) output file for rules, (string) trees test file (or \"none\"), maximum overall reduction (int), minimum reduction factor (double), window size (int), use feature subsets (y/n), logging (v[erbose]/q[uiet])");
 	}
     } 
 }

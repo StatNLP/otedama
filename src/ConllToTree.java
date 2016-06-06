@@ -47,6 +47,8 @@ public class ConllToTree {
 		// ROOT node
 		Node root = new Node(true, true);
 		root.setTag("ROOT");
+		//root.setLabel("root");
+		
 		t.setRoot(root);
 
 		//List for root node and lexical nodes 
@@ -152,7 +154,7 @@ public class ConllToTree {
 						}
 					} else {
 						Node head = leafNodes.get(gov.getInitialLexicalIndex());
-//						head.setLabel("head");						
+						head.setLabel("head");						
 					}
 				}
 
