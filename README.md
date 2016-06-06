@@ -55,28 +55,37 @@ _Example_:
 ## Learning rules
 
 ````
-java -jar bin/learner.jar <english treebank> <number of rules to be learned> <size of training subsets> <size of evaluation treebank> <maximum crossing score> <number of trials> <minimum matching features> <parallel threads> <output file>
+java -jar bin/learner.jar <english treebank> <number of iterations> <size of training subsets> <size of evaluation treebank> <maximum crossing score> <number of trials> <minimum matching features> <parallel threads> <output file> <test treebank> <maximum overall reduction> <minimum reduction factor> <window size> <use feature subsets (y/n)>, <logging (v[erbose]/q[uiet])>
+
 ````
 _Example_:  
 `java -jar bin/learner.jar train.en-fr.trees 50 20 10000 -200 100 10 4 en-fr.rules`
 
 #### Recommended Parameter Ranges:
 
-* `<number of rules to be learned>`:[20-10000] Depends on target language and syntactic complexity of the corpus. 200 ist a good starting value for syntactically simple corpora. As one rule is learned per iteration, bigger rulesets require longer training times.
-* `<size of training subsets>`:[20-1000]  A new random subset of the specified size is chosen as a learning treebank for extracting rule candidates in each iteration. Bigger training subsets lead to longer training times, but increase the probability of finding a near-optimal new rule in each iteration. Should be at leat 2N, where N is the number of CPUs available for adequate load balancing.
-* `<size of evaluation treebank>`:[1000-size of corpus] A new random subset of the specified size is chosen as an evaluation treebank in each iteration. Bigger evaluation treebanks lead to longer training times, but increase the probability of finding a near-optimal new rule in each iteration. 
-* `<maximum crossing score>`:[0.5-2]*((-1)*(<size of evaluation treebank>/100)) Minimum reduction in crossing score in evaluation treebank that each new rule must meet.
+* `<number of iterations>`:[20-10000] Depends on target language and syntactic complexity of the corpus, and on whether you used feature subsets or fuzzy matching. 200 ist a good starting value for syntactically simple corpora. As one rule is learned per iteration, bigger rulesets require longer training times.
+* `<size of training subsets>`:[20-1000]  A new random subset of the specified size is chosen as a learning treebank for extracting rule candidates in each iteration. Bigger training subsets lead to longer training times, but increase the probability of finding a near-optimal new rule in each iteration. Should be at leat 2N, where N is the number of CPUs available for adequate load balancing. 
+* `<size of evaluation treebank>`:[1000-size of corpus] A new random subset of the specified size is chosen as an evaluation treebank in each iteration. Bigger evaluation treebanks lead to longer training times, but increase the probability of finding a near-optimal new rule in each iteration. This feature is currently disabled.
+* `<maximum crossing score>`:[0.5-2]*((-1)*(<size of evaluation treebank>/100)) Minimum reduction in crossing score in evaluation treebank that each new rule must meet. This feature is currently disabled.
 * `<number of trials>`: Upper bound on number of iterations that will be run. Iterations which do not yield a rule candidate that fullfils <maximum crossing score> do not result in a new rule. learner.jar will terminate either after <number of rules to be learned> rules have been discovered or <number of trials> have been run (successfully or unsuccessfully).
-* `<minimum matching features>`:[1-10] 10 for exact matching, <10 for fuzzy matching. The given value is adjusted automatically for nodes that have few children and thus cannot fulfill the given matching criterion. Small values yield very poor results. 
+* `<minimum matching features>`:[1-12] 12 for exact matching, <12 for fuzzy matching. The given value is adjusted automatically for nodes that have few children and thus cannot fulfill the given matching criterion. Small values yield very poor results. 
+* `<test treebank>`: [file name or 'none'] Treebank file for tracking alignment monotonicity. This feature is currently not supported.
+* `<maximum overall reduction>`:[0-100] Bound on the effect on alignment monotonicity of the whole training corpus for candidate rules.
+* `<minimum reduction factor>`:[0-10] Variance constraint for rules: Must reduce crossing score on n times as many sentences as number of sentences where it increases crossing score.
+* `<window size>:` Size of the sliding window during rule extraction.
+* `<use feature subsets>`: If 'y', subsets of the matching context are also extracted as feature sets for candidate rules. 
+
+
+
 
 ## Reordering
 
 ````
-java -jar bin/reorder.jar <english treebank> <rule file> <english output treebank> <english surface output> <batch-size> <minimum matching features>
+java -jar bin/reorder.jar <english treebank> <rule file> <english output treebank> <english surface output> <batch-size> <minimum matching features> <number of parallel threads>
 ````
 
 _Example_:  
-`java -jar bin/reorder.jar test.en.trees en-fr.rules test.en.trees.reordered test.en.reordered 1000 10`
+`java -jar bin/reorder.jar test.en.trees en-fr.rules test.en.trees.reordered test.en.reordered 1000 10 10`
 
 Greater batch sizes can lead to higher memory consumption. It is recommended to use the same value for <minimum matching features> as in the learning step, but feel free to experiment with other values. The value of <minimum matching features> is adjusted automatically for nodes that have few children and thus cannot fulfill the given matching criterion.
 
@@ -96,6 +105,6 @@ stanford-parser.jar
 
 ## License
 
-OTEDAMA was created 2013-2015 by Julian Hitschler, Mayumi Ohta, Benjamin Körner and Laura Jehl at the Institute for Computational Linguistics, University of Heidelberg, Germany (www.cl.uni-heidelberg.de). For question, please contact J.H.: hitschler@cl.uni-heidelberg.de  
+OTEDAMA was created 2013-2016 by Julian Hitschler, Laura Jehl, Sariya Karimova, Mayumi Ohta, Benjamin Körner and Stefan Riezler at the Institute for Computational Linguistics, University of Heidelberg, Germany (www.cl.uni-heidelberg.de). For question, please contact J.H.: hitschler@cl.uni-heidelberg.de  
 OTEDAMA is licensed under the GNU General Public License (Version 3): http://www.gnu.org/licenses/gpl.html
 OTEDAMA is named after a Japanese juggling game for children: https://en.wikipedia.org/wiki/Otedama
