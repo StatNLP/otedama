@@ -59,7 +59,7 @@ java -jar bin/learner.jar <english treebank> <number of iterations> <size of tra
 
 ````
 _Example_:  
-`java -jar bin/learner.jar train.en-fr.trees 50 20 10000 -200 100 10 4 en-fr.rules`
+`java -jar bin/learner.jar train.en-fr.trees 50 20 10000 -200 100 10 4 en-fr.rules none 0 2 4 y v`
 
 #### Recommended Parameter Ranges:
 
@@ -72,7 +72,7 @@ _Example_:
 * `<test treebank>`: [file name or 'none'] Treebank file for tracking alignment monotonicity. This feature is currently not supported.
 * `<maximum overall reduction>`:[0-100] Bound on the effect on alignment monotonicity of the whole training corpus for candidate rules.
 * `<minimum reduction factor>`:[0-10] Variance constraint for rules: Must reduce crossing score on n times as many sentences as number of sentences where it increases crossing score.
-* `<window size>:` Size of the sliding window during rule extraction.
+* `<window size>:[2-4]` Size of the sliding window during rule extraction.
 * `<use feature subsets>`: If 'y', subsets of the matching context are also extracted as feature sets for candidate rules. 
 
 
