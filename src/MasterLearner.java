@@ -239,8 +239,10 @@ public class MasterLearner {
 		int windowSize,
 		String useSubsetOptionString,
 		String useVerboseLoggingOption) throws Exception {
+	long maxWaitingTime = 20 * 1000;
 	long start = System.currentTimeMillis();
 	long stop = start;
+	long lastRuleLearned = start;
 	boolean useSubsets = false;
 	if (useSubsetOptionString.startsWith("y")){
             useSubsets = true;
@@ -413,8 +415,12 @@ public class MasterLearner {
                     for (Rule rule: ruleList){
                         ruleString = rule.toString();
                         if (this.rulesChecked.contains(ruleString)){
+                            stop = System.currentTimeMillis();
+                            if (stop - lastRuleLearned > maxWaitingTime){
+                                System.out.println("[" + (stop - start) / 1000 + " sec]: Maximum waiting time elapsed! Stopping training.");
+                                System.exit(0);
+                            }
                             if (useVerboseLogging){
-                                stop = System.currentTimeMillis();
                                 System.out.println("[" + (stop - start) / 1000 + " sec]: WARNING: Learning step could not be completed successfully, skipping to next. (Rule seen, rule:"+ruleString+")");
                             }
                             continue;
@@ -478,8 +484,12 @@ public class MasterLearner {
 			rule.setScore("COUNT_INCREASE", (double) countIncrease);
 			delta = newTreebankCS - treebankCS;
 			if (delta >= maximumOverallReduction || countIncrease * minimumReductionFactor > countReduction){
-                                if (useVerboseLogging){
-                                    stop = System.currentTimeMillis();
+                                stop = System.currentTimeMillis();
+                                if (stop - lastRuleLearned > maxWaitingTime){
+                                    System.out.println("[" + (stop - start) / 1000 + " sec]: Maximum waiting time elapsed! Stopping training.");
+                                    System.exit(0);
+                                }
+                                if (useVerboseLogging){                                  
                                     System.out.println("[" + (stop - start) / 1000 + " sec]: WARNING: Learning step could not be completed successfully, skipping to next. (No reduction, rule:"+ruleString+")");
                                 }
 				continue;
@@ -502,6 +512,7 @@ public class MasterLearner {
 			writer.close();
 
 			stop = System.currentTimeMillis();
+			lastRuleLearned = stop;
 			System.out.println("[" + (stop - start) / 1000 + " sec]: Learned new rule: "+rule.toRuleFormat());
 			ruleCount++;
 			break;
