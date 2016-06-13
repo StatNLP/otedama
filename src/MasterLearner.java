@@ -239,6 +239,8 @@ public class MasterLearner {
 		int windowSize,
 		String useSubsetOptionString,
 		String useVerboseLoggingOption) throws Exception {
+	long start = System.currentTimeMillis();
+	long stop = start;
 	boolean useSubsets = false;
 	if (useSubsetOptionString.startsWith("y")){
             useSubsets = true;
@@ -251,7 +253,7 @@ public class MasterLearner {
         } else {
             useVerboseLogging = false;
         }
-	long startRun = System.currentTimeMillis();
+	//long startRun = System.currentTimeMillis();
 	int learningSetScaled = learningSet;
 	int scoringSetScaled = scoringSet;
 	Vector<Integer> recordedCSPrevious = new Vector<Integer>(ARRAY_SIZE);
@@ -334,8 +336,9 @@ public class MasterLearner {
 	    writer.close();
 
 	    System.out.println("============================");
-	    System.out.println("Start of " + i + suffix+" iteration.");
-	    long start = System.currentTimeMillis();
+	    stop = System.currentTimeMillis();
+	    System.out.println("[" + (stop - start) / 1000 + " sec]: Start of " + i + suffix+" iteration.");
+	    //long start = System.currentTimeMillis();
 	    
 	    Vector<Tree> randomSubset = new Vector<Tree>();
 	    Vector<Tree> evalTreebank = new Vector<Tree>();
@@ -404,13 +407,15 @@ public class MasterLearner {
 		ruleCount = 0;
 		for (Vector<Rule> ruleList : learnedRules){
                     if (useVerboseLogging){
-                        System.out.println("CADIDATE RULES:"+ruleList.size());
+                        stop = System.currentTimeMillis();
+                        System.out.println("[" + (stop - start) / 1000 + " sec]: CADIDATE RULES:"+ruleList.size());
                     };
                     for (Rule rule: ruleList){
                         ruleString = rule.toString();
                         if (this.rulesChecked.contains(ruleString)){
                             if (useVerboseLogging){
-                                System.out.println("WARNING: Learning step could not be completed successfully, skipping to next. (Rule seen, rule:"+ruleString+")");
+                                stop = System.currentTimeMillis();
+                                System.out.println("[" + (stop - start) / 1000 + " sec]: WARNING: Learning step could not be completed successfully, skipping to next. (Rule seen, rule:"+ruleString+")");
                             }
                             continue;
                         }
@@ -474,12 +479,14 @@ public class MasterLearner {
 			delta = newTreebankCS - treebankCS;
 			if (delta >= maximumOverallReduction || countIncrease * minimumReductionFactor > countReduction){
                                 if (useVerboseLogging){
-                                    System.out.println("WARNING: Learning step could not be completed successfully, skipping to next. (No reduction, rule:"+ruleString+")");
+                                    stop = System.currentTimeMillis();
+                                    System.out.println("[" + (stop - start) / 1000 + " sec]: WARNING: Learning step could not be completed successfully, skipping to next. (No reduction, rule:"+ruleString+")");
                                 }
 				continue;
 			}
 			rule.setScore("CROSSING", (double) delta);
-			System.out.println("Treebank crossing score:"+newTreebankCS+
+			stop = System.currentTimeMillis();
+			System.out.println("[" + (stop - start) / 1000 + " sec]: Treebank crossing score:"+newTreebankCS+
 				" (delta="+(delta)+")");
 			cslogger_train = new Writer(outputRuleFile+".cs.log", true);
 			cslogger_train.write(Integer.toString(newTreebankCS));
@@ -494,7 +501,8 @@ public class MasterLearner {
 			writer.write(rule);
 			writer.close();
 
-			System.out.println("Learned new rule: "+rule.toRuleFormat());
+			stop = System.currentTimeMillis();
+			System.out.println("[" + (stop - start) / 1000 + " sec]: Learned new rule: "+rule.toRuleFormat());
 			ruleCount++;
 			break;
                     }
@@ -512,7 +520,8 @@ public class MasterLearner {
 		//Scale up learning and scoring sets:
 		learningSetScaled = learningSetScaled * 2;
 		scoringSetScaled = scoringSetScaled * 4;
-		System.out.println("WARNING: Iteration could not be completed successfully, skipping to next.");
+		stop = System.currentTimeMillis();
+		System.out.println("[" + (stop - start) / 1000 + " sec]: WARNING: Iteration could not be completed successfully, skipping to next.");
 	    }
 	    
 	   // delete the previous temporary trees file, containing an outdated version of the treebank
@@ -532,9 +541,8 @@ public class MasterLearner {
 
 	    this.treebank = new Tree[ARRAY_SIZE];
 	    readTreeFile("temp.trees", this.treebank);
-	    long stop = System.currentTimeMillis();
-	    System.out.println("End of " + i + suffix+" iteration: [" + (stop - start)
-		    / 1000 + " sec]");
+	    stop = System.currentTimeMillis();
+	    System.out.println("[" + (stop - start) / 1000 + " sec]: End of " + i + suffix+" iteration. ");
 	}
 	temporaryTrees.delete();
 
@@ -546,8 +554,8 @@ public class MasterLearner {
 	}
 	writer.close();
 	
-	long stopRun = System.currentTimeMillis();
-	System.out.println("Done! [" + (stopRun - startRun) / 1000 + " sec]");
+	stop = System.currentTimeMillis();
+	System.out.println("[" + (stop - start) / 1000 + " sec]: Done!");
 
     }
 
