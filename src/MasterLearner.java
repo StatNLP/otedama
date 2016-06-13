@@ -238,8 +238,9 @@ public class MasterLearner {
 		double minimumReductionFactor,
 		int windowSize,
 		String useSubsetOptionString,
-		String useVerboseLoggingOption) throws Exception {
-	long maxWaitingTime = 20 * 1000;
+		String useVerboseLoggingOption,
+		int maxWaitingTimeMins) throws Exception {
+	long maxWaitingTime = maxWaitingTimeMins * 60 * 1000;
 	long start = System.currentTimeMillis();
 	long stop = start;
 	long lastRuleLearned = start;
@@ -571,11 +572,11 @@ public class MasterLearner {
     }
 
     public static void main(String[] args) throws Exception {
-	if (args.length == 15) {
+	if (args.length == 16) {
 	    MasterLearner master = new MasterLearner();
-	    master.run(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]), Integer.parseInt(args[3]), Integer.parseInt(args[4]), Integer.parseInt(args[5]), Integer.parseInt(args[6]), Integer.parseInt(args[7]), args[8], args[9], Integer.parseInt(args[10]), Double.parseDouble(args[11]), Integer.parseInt(args[12]), args[13], args[14]);
+	    master.run(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]), Integer.parseInt(args[3]), Integer.parseInt(args[4]), Integer.parseInt(args[5]), Integer.parseInt(args[6]), Integer.parseInt(args[7]), args[8], args[9], Integer.parseInt(args[10]), Double.parseDouble(args[11]), Integer.parseInt(args[12]), args[13], args[14], Integer.parseInt(args[15]));
 	} else {
-	    System.out.println("Usage: (string) trees file, (int) number of iterations, (int) size of learning set, (int) size of scoring set, (int) maximum crossing score, (int) number of trials, (int) minimum matching features, (int) parallel threads, (string) output file for rules, (string) trees test file (or \"none\"), maximum overall reduction (int), minimum reduction factor (double), window size (int), use feature subsets (y/n), logging (v[erbose]/q[uiet])");
+	    System.out.println("Usage: (string) trees file, (int) number of iterations, (int) size of learning set, (int) size of scoring set, (int) maximum crossing score, (int) number of trials, (int) minimum matching features, (int) parallel threads, (string) output file for rules, (string) trees test file (or \"none\"), maximum overall reduction (int), minimum reduction factor (double), window size (int), use feature subsets (y/n), logging (v[erbose]/q[uiet]), (int [mins]) maximum waiting time");
 	}
     } 
 }
