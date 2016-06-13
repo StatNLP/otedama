@@ -26,6 +26,7 @@ In order to use the Stanford parser, you need to download the models which are n
 1. Download the parser models from [here](http://www.cl.uni-heidelberg.de/statnlpgroup/otedama/stanford-parser-3.5.2-models.jar) (282 MB)
 2. Copy stanford-parser-3.5.2-models.jar to the `lib/parser/` directory in this repo. 
 
+You can also try using a different version of the Stanford parser and parser models (which will probably work just fine), but this has not been tested.
 
 #### For training:
 
@@ -63,7 +64,7 @@ _Example_:
 
 #### Recommended Parameter Ranges:
 
-* `<number of iterations>`:[20-10000] Depends on target language and syntactic complexity of the corpus, and on whether you used feature subsets or fuzzy matching. 200 ist a good starting value for syntactically simple corpora. As one rule is learned per iteration, bigger rulesets require longer training times.
+* `<number of iterations>`:[20-10000] Depends on target language and syntactic complexity of the corpus, and on whether you used feature subsets or fuzzy matching. 200 ist a good starting value for syntactically simple corpora. 
 * `<size of training subsets>`:[20-1000]  A new random subset of the specified size is chosen as a learning treebank for extracting rule candidates in each iteration. Bigger training subsets lead to longer training times, but increase the probability of finding a near-optimal new rule in each iteration. Should be at leat 2N, where N is the number of CPUs available for adequate load balancing. 
 * `<size of evaluation treebank>`:[1000-size of corpus] A new random subset of the specified size is chosen as an evaluation treebank in each iteration. Bigger evaluation treebanks lead to longer training times, but increase the probability of finding a near-optimal new rule in each iteration. This feature is currently disabled.
 * `<maximum crossing score>`:[0.5-2]*((-1)*(<size of evaluation treebank>/100)) Minimum reduction in crossing score in evaluation treebank that each new rule must meet. This feature is currently disabled.
@@ -71,7 +72,7 @@ _Example_:
 * `<minimum matching features>`:[1-12] 12 for exact matching, <12 for fuzzy matching. The given value is adjusted automatically for nodes that have few children and thus cannot fulfill the given matching criterion. Small values yield very poor results. 
 * `<test treebank>`: [file name or 'none'] Treebank file for tracking alignment monotonicity. This feature is currently not supported.
 * `<maximum overall reduction>`:[0-100] Bound on the effect on alignment monotonicity of the whole training corpus for candidate rules.
-* `<minimum reduction factor>`:[0-10] Variance constraint for rules: Must reduce crossing score on n times as many sentences as number of sentences where it increases crossing score.
+* `<minimum reduction factor>`:[0-10] Variance constraint for rules: Each new rule must reduce crossing score on n times as many sentences as number of sentences where it increases crossing score.
 * `<window size>:[2-4]` Size of the sliding window during rule extraction.
 * `<use feature subsets>`: If 'y', subsets of the matching context are also extracted as feature sets for candidate rules. 
 
