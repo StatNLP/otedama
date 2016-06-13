@@ -56,11 +56,11 @@ _Example_:
 ## Learning rules
 
 ````
-java -jar bin/learner.jar <english treebank> <number of iterations> <size of training subsets> <size of evaluation treebank> <maximum crossing score> <number of trials> <minimum matching features> <parallel threads> <output file> <test treebank> <maximum overall reduction> <minimum reduction factor> <window size> <use feature subsets (y/n)>, <logging (v[erbose]/q[uiet])>
+java -jar bin/learner.jar <english treebank> <number of iterations> <size of training subsets> <size of evaluation treebank> <maximum crossing score> <number of trials> <minimum matching features> <parallel threads> <output file> <test treebank> <maximum overall reduction> <minimum reduction factor> <window size> <use feature subsets (y/n)>, <logging (v[erbose]/q[uiet])> <maximum waiting time (mins)>
 
 ````
 _Example_:  
-`java -jar bin/learner.jar train.en-fr.trees 50 20 10000 -200 100 10 4 en-fr.rules none 0 2 4 y v`
+`java -jar bin/learner.jar train.en-fr.trees 50 20 10000 -200 100 10 4 en-fr.rules none 0 2 4 y v 30`
 
 #### Recommended Parameter Ranges:
 
@@ -75,7 +75,7 @@ _Example_:
 * `<minimum reduction factor>`:[0-10] Variance constraint for rules: Each new rule must reduce crossing score on n times as many sentences as number of sentences where it increases crossing score.
 * `<window size>:[2-4]` Size of the sliding window during rule extraction.
 * `<use feature subsets>`: If 'y', subsets of the matching context are also extracted as feature sets for candidate rules. 
-
+* `<maximum waiting time>[10-60]` : Maximum time that may elapse without any new rules being learned before training is stopped. 
 
 
 
