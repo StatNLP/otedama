@@ -92,6 +92,10 @@ Greater batch sizes can lead to higher memory consumption. It is recommended to 
 
 Good luck and have fun!
 
+##Example Script
+
+For instructions on how to run an example script of the entire Otedama pipeline, see example/README.txt
+
 ## References
 
 #### Publications:
