@@ -96,6 +96,14 @@ Good luck and have fun!
 
 For instructions on how to run an example script of the entire Otedama pipeline, see example/README.txt
 
+##Computing Alignment Monotonicity
+
+A python script for computing the monotonicity of a given word alignment can be found at scripts/crossing_score.py. For example, you can run
+
+python crossing_score.py <alignment_file> none
+
+to obtain the total number of alignment crossings in <alignment_file>. Optionally, a file with alignment transformations can be specified as the second parameter.
+
 ## References
 
 #### Publications:
