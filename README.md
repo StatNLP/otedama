@@ -121,3 +121,9 @@ stanford-parser.jar
 OTEDAMA was created 2013-2016 by Julian Hitschler, Laura Jehl, Sariya Karimova, Mayumi Ohta, Benjamin Körner and Stefan Riezler at the Institute for Computational Linguistics, University of Heidelberg, Germany (www.cl.uni-heidelberg.de). For question, please contact J.H.: hitschler@cl.uni-heidelberg.de  
 OTEDAMA is licensed under the GNU General Public License (Version 3): http://www.gnu.org/licenses/gpl.html
 OTEDAMA is named after a Japanese juggling game for children: https://en.wikipedia.org/wiki/Otedama
+
+## Citing Otedama
+
+If you use Otedama, please cite the following publication:
+
+> Julian Hitschler, Laura Jehl, Sariya Karimova, Mayumi Ohta, Benjamin Körner, Stefan Riezler. Otedama: Fast Rule-Based Pre-Ordering for Machine Translation.  The Prague Bulletin of Mathematical Linguistics, vol. 106, pp. 159-168.
