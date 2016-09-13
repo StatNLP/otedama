@@ -126,4 +126,4 @@ OTEDAMA is named after a Japanese juggling game for children: https://en.wikiped
 
 If you use Otedama, please cite the following publication:
 
-> Julian Hitschler, Laura Jehl, Sariya Karimova, Mayumi Ohta, Benjamin Körner, Stefan Riezler. Otedama: Fast Rule-Based Pre-Ordering for Machine Translation.  The Prague Bulletin of Mathematical Linguistics, vol. 106, pp. 159-168.
+> Julian Hitschler, Laura Jehl, Sariya Karimova, Mayumi Ohta, Benjamin Körner, Stefan Riezler. Otedama: Fast Rule-Based Pre-Ordering for Machine Translation.  The Prague Bulletin of Mathematical Linguistics, vol. 106, pp. 159-168. Charles University, Prague, Czech Republic, 2016: http://ufal.mff.cuni.cz/pbml/106/art-hitschler-et-al.pdf
