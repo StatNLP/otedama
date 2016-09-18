@@ -16,7 +16,7 @@ in the installation directory should create the files `parser.jar`, `learner.jar
 
 ## Preprocessing/Postprocessing
 
-OTEDAMA cannot handle the unicode input chracters '{', '}', '[', ']', '&', '#', '=' and '>'. It will automatically replace them with the placeholders "-LCB-", "-RCB-", "-LSB-", "-RSB-", "-AMP-", "-NUM-", "-EQU-" and "-GRE-". You can undo this for the system's output by using the postprocess.sh script.
+Note that because output sentences are reconstructed from parse trees, the parser's tokenization is preserved in the input (if your parser performs automatic tokenization). For meaningful comparison, it is recommended you use tokenized text for your experiments or apply de-tokenization after re-ordering.
 
 ## Parsing
 

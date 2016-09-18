@@ -102,7 +102,19 @@ public class BatchReorder{
                         }
                         c++;
 			this.outputTreebankWriter.write(tree);
-			this.surfaceWriter.write(tree.toSentence());
+			treeSurface = tree.toSentence();
+			//replace special characters
+			treeSurface = treeSurface.replaceAll("-LRB-","(");
+			treeSurface = treeSurface.replaceAll("-RRB-",")");
+			treeSurface = treeSurface.replaceAll("-LCB-","{");
+                        treeSurface = treeSurface.replaceAll("-RCB-","}");
+                        treeSurface = treeSurface.replaceAll("-LSB-","[");
+                        treeSurface = treeSurface.replaceAll("-RSB-","]");
+			treeSurface = treeSurface.replaceAll("-AMP-","&");
+			treeSurface = treeSurface.replaceAll("-NUM-","#");
+			treeSurface = treeSurface.replaceAll("-GRE-",">");
+			treeSurface = treeSurface.replaceAll("-EQU-","=");
+			this.surfaceWriter.write(treeSurface);
 			this.transformationWriter.write(tree.getTransformationString());
 			//tree.recursivePrint();
 		}

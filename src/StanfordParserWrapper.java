@@ -15,7 +15,7 @@ import edu.stanford.nlp.trees.TypedDependency;
 
 
 /**
- * Stanford Parser Wrapper (for Stanford Parser Version 2.0.5).
+ * Stanford Parser Wrapper (for Stanford Parser Version 2.0.5 or newer).
  * 
  */
 

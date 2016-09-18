@@ -545,7 +545,7 @@ public class Tree {
 	//Words are surfaces of all lexical nodes:
 	Vector<Node> nodes = this.getLexicalNodes();
 	for(Node n: nodes){
-	    sentence = sentence + n.getSurface() + " ";
+	    sentence = sentence + n.getSurface() + " ";//TODO replace special characters
 	}
 	return sentence;	     
     }
