@@ -17,7 +17,7 @@ public class MasterLearner {
     private Vector<Rule> rulebase;
     private AtomicInteger threadCounter;
     private boolean useTestTreebank;
-    private static final int ARRAY_SIZE = 100000;
+    private static final int ARRAY_SIZE = 2000000;
     private Set<String> rulesChecked;
     
     public MasterLearner() {
