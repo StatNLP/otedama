@@ -115,9 +115,13 @@ to obtain the total number of alignment crossings in <alignment_file>. Optionall
 
 stanford-parser.jar
 
+## Support
+
+For questions and comments, please contact Julian Hitschler: hitschler@cl.uni-heidelberg.de. We are happy to help with any issue you may encounter while using Otedama, no matter how big or small.
+
 ## License
 
-OTEDAMA was created 2013-2016 by Julian Hitschler, Laura Jehl, Sariya Karimova, Mayumi Ohta, Benjamin Körner and Stefan Riezler at the Institute for Computational Linguistics, University of Heidelberg, Germany (www.cl.uni-heidelberg.de). For question, please contact J.H.: hitschler@cl.uni-heidelberg.de  
+OTEDAMA was created 2013-2016 by Julian Hitschler, Laura Jehl, Sariya Karimova, Mayumi Ohta, Benjamin Körner and Stefan Riezler at the Institute for Computational Linguistics, University of Heidelberg, Germany (www.cl.uni-heidelberg.de). 
 OTEDAMA is licensed under the GNU General Public License (Version 3): http://www.gnu.org/licenses/gpl.html
 OTEDAMA is named after a Japanese juggling game for children: https://en.wikipedia.org/wiki/Otedama
 
