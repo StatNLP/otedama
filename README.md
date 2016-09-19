@@ -66,17 +66,17 @@ _Example_:
 
 Parameters for the learner are specified in a config file. See example/example.config for a template. The parameters are as follows: 
 
-    * TRAINING_TREEBANK_FILE: Parsed training data, created by parser.jar or conll2tree.jar
-    * INITIAL_SUBSAMPLE_SIZE=10: A new random subset of the specified size is chosen as a learning treebank for extracting rule candidates in each iteration. Bigger training subsets lead to longer training times, but increase the probability of finding a near-optimal new rule in each iteration. Should be at leat 4N, where N is the number of CPUs available for adequate load balancing. 
-    * MAX_RULE_CROSSING_SCORE: Bound on the effect on alignment monotonicity of the whole training corpus for candidate rules. Should be 0 or a negative number.
-    * MIN_MATCHING_FEATURES: For window size 4: 12 for exact matching, <12 for fuzzy matching. For window size 3: 10 for exact matching, <10 for fuzzy matching. For window size 2: 8 for exact matcing, <8 for fuzzy matching  The given value is adjusted automatically for nodes that have few children and thus cannot fulfill the given matching criterion. Small values yield very poor results.
-    * PARALLEL_THREADS: Number of parallel threads for learning.
-    * RULE_OUTPUT_FILE: Output model file where learned rules are written.
-    * MIN_REDUCTION_FACTOR: Variance constraint for rules: Each new rule must reduce crossing score on n times as many sentences as number of sentences where it increases crossing score. For noisy data sets, a minimum reduction factor of 2.0 is recommended.
-    * WINDOW_SIZE: Size of the sliding window during rule extraction. Values between 2 and 4 are supported.
-    * USE_FEATURE_SUBSETS: If 'y', subsets of the matching context are also extracted as feature sets for candidate rules. 
-    * LOGGING: v[erbose] or q[uiet]
-    * MAX_WAITING_TIME_MINS: Maximum time in minutes that may elapse without any new rules being learned before training is stopped. Longer time limits will result in more rules being learned. For large datasets, a minimum of 10 minutes waiting time is recommended.
+* TRAINING_TREEBANK_FILE: Parsed training data, created by parser.jar or conll2tree.jar
+* INITIAL_SUBSAMPLE_SIZE=10: A new random subset of the specified size is chosen as a learning treebank for extracting rule candidates in each iteration. Bigger training subsets lead to longer training times, but increase the probability of finding a near-optimal new rule in each iteration. Should be at leat 4N, where N is the number of CPUs available for adequate load balancing. 
+* MAX_RULE_CROSSING_SCORE: Bound on the effect on alignment monotonicity of the whole training corpus for candidate rules. Should be 0 or a negative number.
+* MIN_MATCHING_FEATURES: For window size 4: 12 for exact matching, <12 for fuzzy matching. For window size 3: 10 for exact matching, <10 for fuzzy matching. For window size 2: 8 for exact matcing, <8 for fuzzy matching  The given value is adjusted automatically for nodes that have few children and thus cannot fulfill the given matching criterion. Small values yield very poor results.
+* PARALLEL_THREADS: Number of parallel threads for learning.
+* RULE_OUTPUT_FILE: Output model file where learned rules are written.
+* MIN_REDUCTION_FACTOR: Variance constraint for rules: Each new rule must reduce crossing score on n times as many sentences as number of sentences where it increases crossing score. For noisy data sets, a minimum reduction factor of 2.0 is recommended.
+* WINDOW_SIZE: Size of the sliding window during rule extraction. Values between 2 and 4 are supported.
+* USE_FEATURE_SUBSETS: If 'y', subsets of the matching context are also extracted as feature sets for candidate rules. 
+* LOGGING: v[erbose] or q[uiet]
+* MAX_WAITING_TIME_MINS: Maximum time in minutes that may elapse without any new rules being learned before training is stopped. Longer time limits will result in more rules being learned. For large datasets, a minimum of 10 minutes waiting time is recommended.
 
 ## Reordering
 
