@@ -223,42 +223,28 @@ public class MasterLearner {
 	return rules;
     }
 
-    public void run(
-		String originalTreeFile, 
-		int n, 
-		int learningSet, 
-		int scoringSet, 
-		int maxCrossingScore, 
-		int trials, 
-		int minimumMatchingFeatures,
-		int maximumParallelThreads,
-		String outputRuleFile,
-		String testSetFile,
-		int maximumOverallReduction,
-		double minimumReductionFactor,
-		int windowSize,
-		String useSubsetOptionString,
-		String useVerboseLoggingOption,
-		int maxWaitingTimeMins) throws Exception {
+    public void run(ConfigParser configParser) throws Exception {
+	String originalTreeFile = configParser.getTrainingTreebankFile(); 
+	int learningSet = configParser.getInitialSubsampleSize();
+	int maxCrossingScore = 0;  
+	int minimumMatchingFeatures = configParser.getMinMatchingFeatures();
+	int maximumParallelThreads = configParser.getParallelThreads();
+	String outputRuleFile = configParser.getRuleOutputFile();
+	int maximumOverallReduction = configParser.getMaxRuleCrossingScore();
+	double minimumReductionFactor = configParser.getMinReductionFactor();
+	int windowSize = configParser.getWindowSize();
+	boolean useSubsets = configParser.getUseFeatureSubsets();
+	boolean useVerboseLogging = configParser.getVerboseLogging();
+        int maxWaitingTimeMins = configParser.getMaxWaitingTimeMins();
+		
 	long maxWaitingTime = maxWaitingTimeMins * 60 * 1000;
 	long start = System.currentTimeMillis();
 	long stop = start;
 	long lastRuleLearned = start;
-	boolean useSubsets = false;
-	if (useSubsetOptionString.startsWith("y")){
-            useSubsets = true;
-	} else {
-            useSubsets = false;
-	}
-	boolean useVerboseLogging = false;
-        if (useVerboseLoggingOption.startsWith("v")){
-            useVerboseLogging = true;
-        } else {
-            useVerboseLogging = false;
-        }
+	
 	//long startRun = System.currentTimeMillis();
 	int learningSetScaled = learningSet;
-	int scoringSetScaled = scoringSet;
+	//int scoringSetScaled = scoringSet;
 	Vector<Integer> recordedCSPrevious = new Vector<Integer>(ARRAY_SIZE);
 	//Vector<Integer> recordedCSCurrent = new Vector<Integer>(ARRAY_SIZE);
 	Vector<RuleApplication> ruleThreads = new Vector<RuleApplication>(ARRAY_SIZE);
@@ -271,7 +257,6 @@ public class MasterLearner {
 	
 	//create a temporary tress file and write the treebank to it, then refreshes the treebank from it
 
-	
 	File temporaryTrees = new File("temp.trees");
 	temporaryTrees.createNewFile();
 	Writer writer = new Writer(temporaryTrees.getName(), false);
@@ -309,11 +294,9 @@ public class MasterLearner {
 	System.out.println("Treebank crossing score:"+newTreebankCS);
 	treebankCS = newTreebankCS;
 		
-	// Iterative learning steps: One rule is added per iteration
-	for (int i=0; i < trials; i++){
-	    if (this.rulebase.size()>= n){
-		break;
-	    }
+	// Iterative learning steps
+	int i = 0;
+	while (true) {
 		
             smallestDecimalPlace = i % 10;
             if (smallestDecimalPlace == 1 && i % 100 != 11){
@@ -353,8 +336,8 @@ public class MasterLearner {
 	    
 	    // Create an evaluation subset 
 	    
-	    evalTreebank = generateSubset(this.treebank, scoringSetScaled, randomSubset);
-	    System.out.println("Size of the evaluation subset:"+evalTreebank.size());
+	    //evalTreebank = generateSubset(this.treebank, scoringSetScaled, randomSubset);
+	    //System.out.println("Size of the evaluation subset:"+evalTreebank.size());
 
 	    // Run learners on subset.trees (one learner per tree). 
 	    System.out.println("Size of treebank:"+treebankSize);
@@ -522,16 +505,16 @@ public class MasterLearner {
 		if (ruleCount < 20){
 			//Scale up learning and scoring sets:
 			learningSetScaled = learningSetScaled * 2;
-			scoringSetScaled = scoringSetScaled * 4;
+			//scoringSetScaled = scoringSetScaled * 4;
 		} else if (ruleCount > 1000 && learningSetScaled > 10){
 			//Scale down learning and scoring sets:
 			learningSetScaled = learningSetScaled / 2;
-			scoringSetScaled = scoringSetScaled / 2;
+			//scoringSetScaled = scoringSetScaled / 2;
 		}
 	    } else {
 		//Scale up learning and scoring sets:
 		learningSetScaled = learningSetScaled * 2;
-		scoringSetScaled = scoringSetScaled * 4;
+		//scoringSetScaled = scoringSetScaled * 4;
 		stop = System.currentTimeMillis();
 		System.out.println("[" + (stop - start) / 1000 + " sec]: WARNING: Iteration could not be completed successfully, skipping to next.");
 	    }
@@ -555,28 +538,18 @@ public class MasterLearner {
 	    readTreeFile("temp.trees", this.treebank);
 	    stop = System.currentTimeMillis();
 	    System.out.println("[" + (stop - start) / 1000 + " sec]: End of " + i + suffix+" iteration. ");
+	    i++;
 	}
-	temporaryTrees.delete();
-
-	int i = 0;
-	writer = new Writer(outputRuleFile+".final", false);
-	for (Rule r: this.rulebase){
-	    r.setRuleID(++i);
-	    writer.write(r);
-	}
-	writer.close();
-	
-	stop = System.currentTimeMillis();
-	System.out.println("[" + (stop - start) / 1000 + " sec]: Done!");
-
     }
 
     public static void main(String[] args) throws Exception {
-	if (args.length == 16) {
-	    MasterLearner master = new MasterLearner();
-	    master.run(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]), Integer.parseInt(args[3]), Integer.parseInt(args[4]), Integer.parseInt(args[5]), Integer.parseInt(args[6]), Integer.parseInt(args[7]), args[8], args[9], Integer.parseInt(args[10]), Double.parseDouble(args[11]), Integer.parseInt(args[12]), args[13], args[14], Integer.parseInt(args[15]));
-	} else {
-	    System.out.println("Usage: (string) trees file, (int) number of iterations, (int) size of learning set, (int) size of scoring set, (int) maximum crossing score, (int) number of trials, (int) minimum matching features, (int) parallel threads, (string) output file for rules, (string) trees test file (or \"none\"), maximum overall reduction (int), minimum reduction factor (double), window size (int), use feature subsets (y/n), logging (v[erbose]/q[uiet]), (int [mins]) maximum waiting time");
+	if (args.length == 1){
+            ConfigParser configParser = new ConfigParser();
+            configParser.parseConfig(args[0]);
+            MasterLearner master = new MasterLearner();
+            master.run(configParser);
+        } else {
+	    System.out.println("Usage: (string) config file. ");
 	}
     } 
 }

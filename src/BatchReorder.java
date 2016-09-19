@@ -25,12 +25,17 @@ public class BatchReorder{
 	
 	public BatchReorder(
 		String treebankFile, 
-		String rulesFile, 
+		String rulesFile,
+		String configFile,
 		String outputTreebankFile, 
 		String outputSurfaceFile, 
 		int batchSize, 
-		int minimumMatchingFeatures,
 		int parallelThreads){
+		
+		ConfigParser configParser = new ConfigParser();
+		configParser.parseConfig(configFile);
+		int minimumMatchingFeatures = configParser.getMinMatchingFeatures();
+		
 		if (batchSize > BATCH_ARRAY_SIZE){
                     System.err.println("Batch size too large. Maximum batch size: "+BATCH_ARRAY_SIZE);
                     System.exit(3);
@@ -182,10 +187,10 @@ public class BatchReorder{
      */
     public static void main(String[] args) throws Exception {
 	if (args.length == 7) {
-	    BatchReorder batchReorder = new BatchReorder(args[0], args[1], args[2], args[3], Integer.parseInt(args[4]), Integer.parseInt(args[5]), Integer.parseInt(args[6]));
+	    BatchReorder batchReorder = new BatchReorder(args[0], args[1], args[2], args[3], args[4], Integer.parseInt(args[5]), Integer.parseInt(args[6]));
 	    batchReorder.run();
 	} else {
-	    System.out.println("Usage: (string) trees file, (string) rules files, (string) output trees file, (string) output file, (int) batch size, (int) minimum matching features, (int) parallel threads");
+	    System.out.println("Usage: (string) trees file, (string) rules files, (string) config file, (string) output trees file, (string) output file, (int) batch size, (int) parallel threads");
 	}
     }
 

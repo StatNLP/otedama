@@ -3,6 +3,7 @@ mkdir bin
 javac -classpath $PWD/src src/Node.java -d bin/
 javac -classpath $PWD/src src/Tree.java -d bin/
 javac -classpath $PWD/src src/Rule.java -d bin/
+javac -classpath $PWD/src src/ConfigParser.java -d bin/
 javac -classpath $PWD/src src/ReorderJob.java -d bin/
 javac -classpath $PWD/src src/MasterLearner.java -d bin/
 javac -classpath $PWD/src src/BatchReorder.java -d bin/

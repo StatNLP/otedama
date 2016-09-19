@@ -12,7 +12,7 @@ Running
 
 `./build.sh`
 
-in the installation directory should create the files `parser.jar`, `learner.jar` and `reorder.jar` in the bin subdirectory.
+in the installation directory should create the files `parser.jar`, `zhparser.jar`, `conll2tree.jar`, `learner.jar` and `reorder.jar` in the bin subdirectory.
 
 ## Preprocessing/Postprocessing
 
@@ -49,46 +49,45 @@ _Example_:
 #### Languages other than English:
 
 * For Chinese, use `bin/zhparser.jar` instead of `bin/parser.jar`.
-* For external dependency parsers that produce output in CoNLL format (http://ilk.uvt.nl/conll/#dataformat),  run `bin/conll2tree.jar` to convert labelled dependencies to trees in Otedama's own format.   
+* For external dependency parsers that produce output in CoNLL format (http://ilk.uvt.nl/conll/#dataformat),  run `bin/conll2tree.jar  <input file source in CONLL format>, <alignment file source-target>, <output file>` to convert labelled dependencies to trees in Otedama's own format.   
 * It is planned to support other output from external parsers eventually.  
 
 
 ## Learning rules
 
 ````
-java -jar bin/learner.jar <english treebank> <number of iterations> <size of training subsets> <size of evaluation treebank> <maximum crossing score> <number of trials> <minimum matching features> <parallel threads> <output file> <test treebank> <maximum overall reduction> <minimum reduction factor> <window size> <use feature subsets (y/n)>, <logging (v[erbose]/q[uiet])> <maximum waiting time (mins)>
+java -jar bin/learner.jar <config file> 
 
 ````
 _Example_:  
-`java -jar bin/learner.jar train.en-fr.trees 50 20 10000 -200 100 10 4 en-fr.rules none 0 2 4 y v 30`
+`java -jar bin/learner.jar example/example.config`
 
-#### Recommended Parameter Ranges:
+#### Training Parameters:
 
-* `<number of iterations>`:[20-10000] Depends on target language and syntactic complexity of the corpus, and on whether you used feature subsets or fuzzy matching. 200 ist a good starting value for syntactically simple corpora. 
-* `<size of training subsets>`:[20-1000]  A new random subset of the specified size is chosen as a learning treebank for extracting rule candidates in each iteration. Bigger training subsets lead to longer training times, but increase the probability of finding a near-optimal new rule in each iteration. Should be at leat 2N, where N is the number of CPUs available for adequate load balancing. 
-* `<size of evaluation treebank>`:[1000-size of corpus] A new random subset of the specified size is chosen as an evaluation treebank in each iteration. Bigger evaluation treebanks lead to longer training times, but increase the probability of finding a near-optimal new rule in each iteration. This feature is currently disabled.
-* `<maximum crossing score>`:[0.5-2]*((-1)*(<size of evaluation treebank>/100)) Minimum reduction in crossing score in evaluation treebank that each new rule must meet. This feature is currently disabled.
-* `<number of trials>`: Upper bound on number of iterations that will be run. Iterations which do not yield a rule candidate that fullfils <maximum crossing score> do not result in a new rule. learner.jar will terminate either after <number of rules to be learned> rules have been discovered or <number of trials> have been run (successfully or unsuccessfully).
-* `<minimum matching features>`:[1-12] 12 for exact matching, <12 for fuzzy matching. The given value is adjusted automatically for nodes that have few children and thus cannot fulfill the given matching criterion. Small values yield very poor results. 
-* `<test treebank>`: [file name or 'none'] Treebank file for tracking alignment monotonicity. This feature is currently not supported.
-* `<maximum overall reduction>`:[0-100] Bound on the effect on alignment monotonicity of the whole training corpus for candidate rules.
-* `<minimum reduction factor>`:[0-10] Variance constraint for rules: Each new rule must reduce crossing score on n times as many sentences as number of sentences where it increases crossing score.
-* `<window size>:[2-4]` Size of the sliding window during rule extraction.
-* `<use feature subsets>`: If 'y', subsets of the matching context are also extracted as feature sets for candidate rules. 
-* `<maximum waiting time>[10-60]` : Maximum time that may elapse without any new rules being learned before training is stopped. 
+Parameters for the learner are specified in a config file. See example/example.config for a template. The parameters are as follows: 
 
-
+    * TRAINING_TREEBANK_FILE: Parsed training data, created by parser.jar or conll2tree.jar
+    * INITIAL_SUBSAMPLE_SIZE=10: A new random subset of the specified size is chosen as a learning treebank for extracting rule candidates in each iteration. Bigger training subsets lead to longer training times, but increase the probability of finding a near-optimal new rule in each iteration. Should be at leat 4N, where N is the number of CPUs available for adequate load balancing. 
+    * MAX_RULE_CROSSING_SCORE: Bound on the effect on alignment monotonicity of the whole training corpus for candidate rules. Should be 0 or a negative number.
+    * MIN_MATCHING_FEATURES: For window size 4: 12 for exact matching, <12 for fuzzy matching. For window size 3: 10 for exact matching, <10 for fuzzy matching. For window size 2: 8 for exact matcing, <8 for fuzzy matching  The given value is adjusted automatically for nodes that have few children and thus cannot fulfill the given matching criterion. Small values yield very poor results.
+    * PARALLEL_THREADS: Number of parallel threads for learning.
+    * RULE_OUTPUT_FILE: Output model file where learned rules are written.
+    * MIN_REDUCTION_FACTOR: Variance constraint for rules: Each new rule must reduce crossing score on n times as many sentences as number of sentences where it increases crossing score. For noisy data sets, a minimum reduction factor of 2.0 is recommended.
+    * WINDOW_SIZE: Size of the sliding window during rule extraction. Values between 2 and 4 are supported.
+    * USE_FEATURE_SUBSETS: If 'y', subsets of the matching context are also extracted as feature sets for candidate rules. 
+    * LOGGING: v[erbose] or q[uiet]
+    * MAX_WAITING_TIME_MINS: Maximum time in minutes that may elapse without any new rules being learned before training is stopped. Longer time limits will result in more rules being learned. For large datasets, a minimum of 10 minutes waiting time is recommended.
 
 ## Reordering
 
 ````
-java -jar bin/reorder.jar <english treebank> <rule file> <english output treebank> <english surface output> <batch-size> <minimum matching features> <number of parallel threads>
+java -jar bin/reorder.jar <english treebank> <rule file> <config file> <english output treebank> <english surface output> <batch-size> <number of parallel threads>
 ````
 
 _Example_:  
-`java -jar bin/reorder.jar test.en.trees en-fr.rules test.en.trees.reordered test.en.reordered 1000 10 10`
+`java -jar bin/reorder.jar test.en.trees en-fr.rules en-fr.config test.en.trees.reordered test.en.reordered 1000 10 10`
 
-Greater batch sizes can lead to higher memory consumption. It is recommended to use the same value for <minimum matching features> as in the learning step, but feel free to experiment with other values. The value of <minimum matching features> is adjusted automatically for nodes that have few children and thus cannot fulfill the given matching criterion.
+Greater batch sizes can lead to higher memory consumption but higher throughput as well. It is highly recommended to use the same config file as in the learning step. 
 
 Good luck and have fun!
 
