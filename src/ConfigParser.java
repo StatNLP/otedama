@@ -71,28 +71,28 @@ public class ConfigParser{
         try {
             this.initialSubsampleSize = Integer.parseInt(paramValues.get("INITIAL_SUBSAMPLE_SIZE"));
         } catch (Exception e){
-             //System.err.println("Invalid parameter value for INITIAL_SUBSAMPLE_SIZE (int needed).");
+            System.err.println("Invalid parameter value for INITIAL_SUBSAMPLE_SIZE (int needed).");
             System.exit(10);
         }
         
         try {
             this.maxRuleCrossingScore = Integer.parseInt(paramValues.get("MAX_RULE_CROSSING_SCORE"));
         } catch (Exception e){
-            //System.err.println("Invalid parameter value for MAX_RULE_CROSSING_SCORE (int needed).");
+            System.err.println("Invalid parameter value for MAX_RULE_CROSSING_SCORE (int needed).");
             System.exit(11);
         }
         
         try {
             this.minMatchingFeatures = Integer.parseInt(paramValues.get("MIN_MATCHING_FEATURES"));
         } catch (Exception e) {
-             //System.err.println("Invalid parameter value for MIN_MATCHING_FEATURES (int needed).");
+            System.err.println("Invalid parameter value for MIN_MATCHING_FEATURES (int needed).");
             System.exit(12);
         }
         
         try {
             this.parallelThreads = Integer.parseInt(paramValues.get("PARALLEL_THREADS"));
         } catch (Exception e) {
-             //System.err.println("Invalid parameter value for PARALLEL_THREADS (int needed).");
+            System.err.println("Invalid parameter value for PARALLEL_THREADS (int needed).");
             System.exit(13);
         }
         
@@ -101,14 +101,14 @@ public class ConfigParser{
         try {
             this.minReductionFactor = Double.parseDouble(paramValues.get("MIN_REDUCTION_FACTOR"));
         } catch (Exception e)  {
-             //System.err.println("Invalid parameter value for MIN_REDUCTION_FACTOR (double needed).");
+            System.err.println("Invalid parameter value for MIN_REDUCTION_FACTOR (double needed).");
             System.exit(14);
         }
         
         try {
             this.windowSize = Integer.parseInt(paramValues.get("WINDOW_SIZE"));
         } catch (Exception e)  {
-             //System.err.println("Invalid parameter value for WINDOW_SIZE (int needed).");
+            System.err.println("Invalid parameter value for WINDOW_SIZE (int needed).");
             System.exit(15);
         }
         
@@ -127,7 +127,7 @@ public class ConfigParser{
         try {
             this.maxWaitingTimeMins = Integer.parseInt(paramValues.get("MAX_WAITING_TIME_MINS"));
         } catch (Exception e) {
-            //System.err.println("Invalid parameter value for MAX_WAITING_TIME_MINS (int needed).");
+            System.err.println("Invalid parameter value for MAX_WAITING_TIME_MINS (int needed).");
             System.exit(16);
         }
         
