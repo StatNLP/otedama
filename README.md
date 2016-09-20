@@ -8,11 +8,25 @@ OTEDAMA comes pre-packaged with the Stanford Parser. You just need a working ins
 
 ## Installation
 
-Running
+1. Download Otedama by running:
+
+`git clone https://github.com/StatNLP/otedama`
+
+2. Download the Stanford Parser models by running:
+
+`cd otedama/lib/parser/`
+
+`wget http://www.cl.uni-heidelberg.de/statnlpgroup/otedama/stanford-parser-3.5.2-models.jar`
+
+`cd ../..`
+
+3. Running
 
 `./build.sh`
 
 in the installation directory should create the files `parser.jar`, `zhparser.jar`, `conll2tree.jar`, `learner.jar` and `reorder.jar` in the bin subdirectory.
+
+4. If all went well, you should be able to run the example script (see example/README.txt for instructions).
 
 ## Preprocessing/Postprocessing
 
