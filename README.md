@@ -127,7 +127,7 @@ For questions and comments, please contact Julian Hitschler: hitschler@cl.uni-he
 ## License
 
 OTEDAMA was created 2013-2016 by Julian Hitschler, Laura Jehl, Sariya Karimova, Mayumi Ohta, Benjamin Körner and Stefan Riezler at the Institute for Computational Linguistics, University of Heidelberg, Germany (www.cl.uni-heidelberg.de). 
-OTEDAMA is licensed under the GNU General Public License (Version 3): http://www.gnu.org/licenses/gpl.html
+OTEDAMA is licensed under the BSD 2-Clause License: https://opensource.org/licenses/bsd-license.php
 OTEDAMA is named after a Japanese juggling game for children: https://en.wikipedia.org/wiki/Otedama
 
 ## Citing Otedama
