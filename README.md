@@ -112,6 +112,8 @@ to obtain the total number of alignment crossings in <alignment_file>. Optionall
 
 #### Publications:
 
+> Julian Hitschler, Laura Jehl, Sariya Karimova, Mayumi Ohta, Benjamin Körner, Stefan Riezler. Otedama: Fast Rule-Based Pre-Ordering for Machine Translation.  The Prague Bulletin of Mathematical Linguistics, vol. 106, pp. 159-168. Charles University, Prague, Czech Republic, 2016: http://ufal.mff.cuni.cz/pbml/106/art-hitschler-et-al.pdf
+
 > D. Genzel. Automatically Learning Source-side Reordering Rules for Large Scale Machine Translation. Proceedings of the 43rd Annual Meeting on Association for Computational Linguistics ACL 2010, (August):376-384, 2010.
 
 > M. Collins, et. al. Clause restructuring for statistical machine translation. Proceedings of the 43rd Annual Meeting on Association for Computational Linguistics ACL05, (June):531-540, 2005.
